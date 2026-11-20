@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import P1Jobs from './pages/P1Jobs';
 import P2Apply from './pages/P2Apply';
 import P3Submitted from './pages/P3Submitted';
 import P4Track from './pages/P4Track';
 import P5Interview from './pages/P5Interview';
+import { BottomNav } from './components/UI';
 import { MOCK_APPLICATIONS } from './services/api';
 
 export default function App() {
@@ -12,6 +13,16 @@ export default function App() {
   const [submission, setSubmission] = useState(null);
   const [trackCode, setTrackCode] = useState('APP-2026-X9A7');
   const [invitedApp, setInvitedApp] = useState(MOCK_APPLICATIONS['APP-2026-X9A7']);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail) setPage(e.detail);
+    };
+    window.addEventListener('rf-portal-nav', handler);
+    return () => window.removeEventListener('rf-portal-nav', handler);
+  }, []);
+
+  const showBottomNav = page === 'p1' || page === 'p4' || page === 'p5';
 
   return (
     <>
@@ -70,6 +81,8 @@ export default function App() {
           onBackHome={() => setPage('p1')}
         />
       )}
+
+      {showBottomNav && <BottomNav activePage={page} onNavigate={setPage} />}
     </>
   );
 }

@@ -104,7 +104,7 @@ export default function P1Jobs({ onSelectJob, onOpenTrack }) {
       </section>
 
       {/* Job list */}
-      <main className="flex-1 max-w-md w-full mx-auto px-4 py-5 space-y-3">
+      <main className="flex-1 max-w-md w-full mx-auto px-4 py-5 pb-24 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-600">
             {loading ? 'Memuat lowongan...' : `${filtered.length} lowongan ditemukan`}

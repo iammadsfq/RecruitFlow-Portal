@@ -1,5 +1,8 @@
-import React from 'react';
-import { ArrowLeft, Menu, CheckCircle2, AlertTriangle, Clock, Info, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  ArrowLeft, Menu, X, CheckCircle2, AlertTriangle, Clock, Info, XCircle,
+  Briefcase, Search, CalendarCheck,
+} from 'lucide-react';
 
 export function LogoMark({ size = 36 }) {
   return (
@@ -104,7 +107,15 @@ export function SkeletonCard() {
   );
 }
 
-export function PortalHeader({ title = 'RecruitFlow Karir', subtitle, onBack, rightAction }) {
+export function PortalHeader({ title = 'RecruitFlow Karir', subtitle, onBack, rightAction, onNavigate, activePage }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLinks = [
+    { id: 'p1', label: 'Daftar Lowongan', desc: 'Cari posisi terbuka', icon: Briefcase },
+    { id: 'p4', label: 'Lacak Status Lamaran', desc: 'Cek progres dengan kode referensi', icon: Search },
+    { id: 'p5', label: 'Konfirmasi Wawancara', desc: 'Terima, tolak, atau ubah jadwal', icon: CalendarCheck },
+  ];
+
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
       <div className="max-w-md mx-auto px-4 h-16 flex items-center gap-3">
@@ -124,17 +135,102 @@ export function PortalHeader({ title = 'RecruitFlow Karir', subtitle, onBack, ri
           <h1 className="font-display font-semibold text-base text-[#172033] truncate">{title}</h1>
           {subtitle && <p className="text-xs text-slate-500 truncate">{subtitle}</p>}
         </div>
-        {rightAction || (
-          <button
-            type="button"
-            aria-label="Menu"
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100"
-          >
-            <Menu className="w-5 h-5" strokeWidth={1.5} />
-          </button>
-        )}
+        {rightAction}
+        <button
+          type="button"
+          aria-label="Menu"
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-[#172033] hover:bg-slate-50 transition"
+        >
+          {menuOpen ? <X className="w-5 h-5" strokeWidth={1.5} /> : <Menu className="w-5 h-5" strokeWidth={1.5} />}
+        </button>
       </div>
+
+      {menuOpen && (
+        <div className="border-t border-slate-200 bg-white shadow-lg">
+          <div className="max-w-md mx-auto px-4 py-3 space-y-1.5">
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 pb-1">
+              Menu Navigasi Portal
+            </p>
+            {navLinks.map((item) => {
+              const Icon = item.icon;
+              const isCurrent = activePage === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    if (onNavigate) onNavigate(item.id);
+                    else window.dispatchEvent(new CustomEvent('rf-portal-nav', { detail: item.id }));
+                  }}
+                  className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition ${
+                    isCurrent ? 'bg-[#FFF7CC] text-[#172033]' : 'hover:bg-slate-50 text-[#172033]'
+                  }`}
+                >
+                  <div
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      isCurrent ? 'bg-[#FFCC00]' : 'bg-slate-100'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 text-[#172033]" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">{item.label}</p>
+                    <p className="text-xs text-slate-500">{item.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </header>
+  );
+}
+
+export function BottomNav({ activePage, onNavigate }) {
+  const items = [
+    { id: 'p1', label: 'Lowongan', icon: Briefcase },
+    { id: 'p4', label: 'Lacak Status', icon: Search },
+    { id: 'p5', label: 'Undangan', icon: CalendarCheck, badge: true },
+  ];
+
+  return (
+    <nav className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.05)]">
+      <div className="max-w-md mx-auto px-2 h-16 grid grid-cols-3 items-center">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const active = activePage === item.id || (item.id === 'p1' && activePage === 'p2');
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onNavigate(item.id)}
+              className="flex flex-col items-center justify-center gap-1 py-1 relative group"
+            >
+              <div
+                className={`px-4 py-1 rounded-full transition ${
+                  active ? 'bg-[#FFF7CC] text-[#172033]' : 'text-slate-500 group-hover:text-[#172033]'
+                }`}
+              >
+                <Icon className="w-5 h-5" strokeWidth={active ? 2 : 1.5} />
+              </div>
+              {item.badge && (
+                <span className="w-2 h-2 rounded-full bg-[#FFCC00] ring-2 ring-white absolute top-1.5 right-[34%]" />
+              )}
+              <span
+                className={`text-[11px] font-semibold ${
+                  active ? 'text-[#172033]' : 'text-slate-500'
+                }`}
+              >
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
 

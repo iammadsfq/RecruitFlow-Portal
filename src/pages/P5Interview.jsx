@@ -202,7 +202,7 @@ export default function P5Interview({ application, onBackToStatus, onBackHome })
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 pb-10">
+    <div className="min-h-screen flex flex-col bg-slate-50 pb-24">
       <PortalHeader title="RecruitFlow Karir" onBack={onBackToStatus} />
 
       <main className="max-w-md w-full mx-auto px-4 py-5 space-y-4">
