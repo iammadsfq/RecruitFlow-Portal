@@ -191,6 +191,57 @@ export const MOCK_APPLICATIONS = {
   },
 };
 
+export const MOCK_INVITATIONS = [
+  {
+    id: 'inv_1',
+    code: 'APP-2026-X9A7',
+    applicant_name: 'Budi Santoso',
+    job_title: 'Crew Operasional',
+    department: 'Operasional Gerai',
+    interview: {
+      status: 'PENDING',
+      date: 'Senin, 24 Nov 2026',
+      time: '10.00 WIB (30 menit)',
+      location: 'Kantor Pusat, Jl. Merdeka No. 12, Jakarta Pusat',
+      documents: 'KTP asli dan salinan CV tercetak',
+      contact: 'Rina (HR) · 0812-0000-0000',
+      remaining_seconds: 21 * 3600 + 14 * 60,
+    },
+  },
+  {
+    id: 'inv_2',
+    code: 'APP-2026-L7V4',
+    applicant_name: 'Budi Santoso',
+    job_title: 'Customer Service',
+    department: 'Layanan Pelanggan',
+    interview: {
+      status: 'CONFIRMED',
+      date: 'Rabu, 26 Nov 2026',
+      time: '13.30 WIB (30 menit)',
+      location: 'Online via Google Meet',
+      documents: 'KTP asli & koneksi internet stabil',
+      contact: 'Dedi (HR) · 0812-1111-2222',
+      remaining_seconds: 0,
+    },
+  },
+  {
+    id: 'inv_3',
+    code: 'APP-2026-EXP0',
+    applicant_name: 'Budi Santoso',
+    job_title: 'Warehouse Staff',
+    department: 'Logistik & Gudang',
+    interview: {
+      status: 'EXPIRED',
+      date: 'Senin, 10 Nov 2026',
+      time: '09.00 WIB (30 menit)',
+      location: 'Gudang Distribusi Rungkut, Surabaya',
+      documents: 'KTP asli dan salinan CV',
+      contact: 'Agus (HR) · 0813-3333-4444',
+      remaining_seconds: 0,
+    },
+  },
+];
+
 export const INITIAL_SLOTS = [
   { id: 'slot_1', date: 'Selasa, 25 Nov 2026', time: '09.00 WIB', available: true, conflictSim: false },
   { id: 'slot_2', date: 'Selasa, 25 Nov 2026', time: '13.30 WIB', available: true, conflictSim: true },

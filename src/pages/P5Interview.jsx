@@ -11,8 +11,11 @@ function formatCountdown(secs) {
 }
 
 export default function P5Interview({ application, onBackToStatus, onBackHome }) {
-  const [view, setView] = useState('invite'); // invite | reschedule | confirmed | declined
-  const [secondsLeft, setSecondsLeft] = useState(application?.interview?.remaining_seconds ?? 76440);
+  const initStatus = application?.interview?.status;
+  const [view, setView] = useState(initStatus === 'CONFIRMED' ? 'confirmed' : 'invite'); // invite | reschedule | confirmed | declined
+  const [secondsLeft, setSecondsLeft] = useState(
+    initStatus === 'EXPIRED' ? 0 : application?.interview?.remaining_seconds ?? 76440
+  );
   const [slots, setSlots] = useState(INITIAL_SLOTS);
   const [selectedSlotId, setSelectedSlotId] = useState('slot_1');
   const [conflict409, setConflict409] = useState(false);

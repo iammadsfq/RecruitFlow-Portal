@@ -46,15 +46,6 @@ export default function P1Jobs({ onSelectJob, onOpenTrack }) {
       <PortalHeader
         title="RecruitFlow Karir"
         subtitle="PT Inovasi Digital Nusantara"
-        rightAction={
-          <button
-            type="button"
-            onClick={onOpenTrack}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-[#172033] hover:bg-slate-50"
-          >
-            Lacak Status
-          </button>
-        }
       />
 
       {/* Hero + Filter */}

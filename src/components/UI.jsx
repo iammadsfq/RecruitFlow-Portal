@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  ArrowLeft, Menu, X, CheckCircle2, AlertTriangle, Clock, Info, XCircle,
+  ArrowLeft, CheckCircle2, AlertTriangle, Clock, Info, XCircle,
   Briefcase, Search, CalendarCheck,
 } from 'lucide-react';
 
@@ -107,15 +107,7 @@ export function SkeletonCard() {
   );
 }
 
-export function PortalHeader({ title = 'RecruitFlow Karir', subtitle, onBack, rightAction, onNavigate, activePage }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const navLinks = [
-    { id: 'p1', label: 'Daftar Lowongan', desc: 'Cari posisi terbuka', icon: Briefcase },
-    { id: 'p4', label: 'Lacak Status Lamaran', desc: 'Cek progres dengan kode referensi', icon: Search },
-    { id: 'p5', label: 'Konfirmasi Wawancara', desc: 'Terima, tolak, atau ubah jadwal', icon: CalendarCheck },
-  ];
-
+export function PortalHeader({ title = 'RecruitFlow Karir', subtitle, onBack, rightAction }) {
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
       <div className="max-w-md mx-auto px-4 h-16 flex items-center gap-3">
@@ -135,56 +127,8 @@ export function PortalHeader({ title = 'RecruitFlow Karir', subtitle, onBack, ri
           <h1 className="font-display font-semibold text-base text-[#172033] truncate">{title}</h1>
           {subtitle && <p className="text-xs text-slate-500 truncate">{subtitle}</p>}
         </div>
-        {rightAction}
-        <button
-          type="button"
-          aria-label="Menu"
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-[#172033] hover:bg-slate-50 transition"
-        >
-          {menuOpen ? <X className="w-5 h-5" strokeWidth={1.5} /> : <Menu className="w-5 h-5" strokeWidth={1.5} />}
-        </button>
+        {rightAction || null}
       </div>
-
-      {menuOpen && (
-        <div className="border-t border-slate-200 bg-white shadow-lg">
-          <div className="max-w-md mx-auto px-4 py-3 space-y-1.5">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 pb-1">
-              Menu Navigasi Portal
-            </p>
-            {navLinks.map((item) => {
-              const Icon = item.icon;
-              const isCurrent = activePage === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    if (onNavigate) onNavigate(item.id);
-                    else window.dispatchEvent(new CustomEvent('rf-portal-nav', { detail: item.id }));
-                  }}
-                  className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition ${
-                    isCurrent ? 'bg-[#FFF7CC] text-[#172033]' : 'hover:bg-slate-50 text-[#172033]'
-                  }`}
-                >
-                  <div
-                    className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                      isCurrent ? 'bg-[#FFCC00]' : 'bg-slate-100'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 text-[#172033]" strokeWidth={1.5} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">{item.label}</p>
-                    <p className="text-xs text-slate-500">{item.desc}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </header>
   );
 }
