@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Briefcase, Calendar, Check, Search, RefreshCw, AlertTriangle, BookmarkCheck } from 'lucide-react';
 import { PortalHeader, StatusChip } from '../components/UI';
-import { MOCK_APPLICATIONS } from '../services/api';
+import { trackApplication } from '../services/api';
 
 const TIMELINE_STEPS = [
   { key: 'RECEIVED', title: 'Lamaran diterima', desc: 'Berkasmu berhasil kami terima', date: '12 Nov, 09.14 WIB' },
@@ -13,17 +13,29 @@ const TIMELINE_STEPS = [
 
 export default function P4Track({ initialCode = 'APP-2026-X9A7', onBack, onOpenInvite }) {
   const [inputCode, setInputCode] = useState(initialCode);
-  const [activeCode, setActiveCode] = useState(initialCode);
+  const [app, setApp] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [savedTalentPool, setSavedTalentPool] = useState(false);
   const [lastUpdated, setLastUpdated] = useState('Baru saja');
 
-  const normalized = activeCode.trim().toUpperCase();
-  const app = MOCK_APPLICATIONS[normalized];
+  const fetchStatus = async (code) => {
+    setLoading(true);
+    const res = await trackApplication(code);
+    setApp(res);
+    setLastUpdated('Baru saja (WIB)');
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchStatus(initialCode);
+  }, [initialCode]);
+
+  const normalized = inputCode.trim().toUpperCase();
 
   const handleLookup = (e) => {
     e.preventDefault();
-    setActiveCode(inputCode.trim().toUpperCase());
     setSavedTalentPool(false);
+    fetchStatus(inputCode);
   };
 
   const getStepState = (stepKey, stage) => {
@@ -40,11 +52,10 @@ export default function P4Track({ initialCode = 'APP-2026-X9A7', onBack, onOpenI
     <div className="min-h-screen flex flex-col bg-slate-50 pb-24">
       <PortalHeader title="Status lamaran" subtitle={normalized || 'Masukkan kode referensi'} onBack={onBack} />
 
-      <main className="max-w-md w-full mx-auto px-4 py-5 space-y-4">
-        {/* Manual code lookup + Quick edge case chips */}
-        <form onSubmit={handleLookup} className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
+      <main className="max-w-2xl w-full mx-auto px-5 py-6 space-y-4">
+        <form onSubmit={handleLookup} className="bg-white rounded-xl hairline-card p-4 space-y-3">
           <label className="block text-xs font-semibold text-slate-600">
-            Cek dengan kode referensi lamaran
+            Cek dengan kode referensi atau token lamaran
           </label>
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -53,49 +64,21 @@ export default function P4Track({ initialCode = 'APP-2026-X9A7', onBack, onOpenI
                 type="text"
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value)}
-                placeholder="APP-2026-X9A7"
-                className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-300 text-sm uppercase"
+                placeholder="Contoh: cv_001 atau APP-2026-X9A7"
+                className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-300 text-sm"
               />
             </div>
             <button
               type="submit"
               className="px-4 h-10 rounded-lg bg-[#172033] text-white text-xs font-semibold hover:bg-[#25324A]"
             >
-              Cek
+              {loading ? 'Mencari...' : 'Cek'}
             </button>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="text-[11px] text-slate-500 w-full">Uji skenario status:</span>
-            {[
-              ['APP-2026-X9A7', 'Diundang'],
-              ['APP-2026-R4T9', 'Ditinjau (OCR)'],
-              ['APP-2026-Q5Z1', 'Ditolak Empatik'],
-              ['APP-2026-EXP0', 'Token Expired'],
-              ['APP-SALAH', '404 Salah'],
-            ].map(([code, lbl]) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => {
-                  setInputCode(code);
-                  setActiveCode(code);
-                  setSavedTalentPool(false);
-                }}
-                className={`px-2 py-1 rounded-md text-[11px] font-semibold border ${
-                  normalized === code
-                    ? 'bg-[#FFF7CC] border-[#FFCC00] text-[#172033]'
-                    : 'bg-slate-50 border-slate-200 text-slate-600'
-                }`}
-              >
-                {lbl}
-              </button>
-            ))}
           </div>
         </form>
 
         {/* Not Found (404) */}
-        {!app && (
+        {!loading && !app && (
           <div className="bg-white rounded-xl border border-slate-200 p-6 text-center space-y-2">
             <AlertTriangle className="w-8 h-8 text-[#A16207] mx-auto" strokeWidth={1.5} />
             <h3 className="font-display font-semibold text-base text-[#172033]">
@@ -113,7 +96,7 @@ export default function P4Track({ initialCode = 'APP-2026-X9A7', onBack, onOpenI
             <div className="flex items-center gap-2 text-[#B91C1C]">
               <AlertTriangle className="w-5 h-5" strokeWidth={1.5} />
               <h3 className="font-display font-semibold text-sm">
-                Tautan pelacakan telah kedaluwarsa (BR-11)
+                Tautan pelacakan telah kedaluwarsa
               </h3>
             </div>
             <p className="text-xs text-red-900 leading-relaxed">

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Check, Upload, FileText, X, Info, AlertCircle } from 'lucide-react';
 import { PortalHeader, StatusChip } from '../components/UI';
+import { SakugaButton } from '../components/SakugaVFX';
+import { submitApplication } from '../services/api';
 
 export default function P2Apply({ job, onBack, onSubmitted, onGoTrack }) {
   const [form, setForm] = useState({
@@ -65,34 +67,31 @@ export default function P2Apply({ job, onBack, onSubmitted, onGoTrack }) {
     setErrors((prev) => ({ ...prev, cv: undefined }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setDuplicateNotice(false);
     if (!validate()) return;
 
-    // Simulasi edge case BR-04 lamaran ganda jika memakai email demo budi.santoso@email.com
-    if (form.email.trim().toLowerCase() === 'duplikat@email.com') {
-      setDuplicateNotice(true);
-      return;
-    }
-
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      const res = await submitApplication(form, cvFile, job);
+      if (res.duplicate) {
+        setDuplicateNotice(true);
+        return;
+      }
+      onSubmitted(res);
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, consent: err.message }));
+    } finally {
       setSubmitting(false);
-      onSubmitted({
-        code: 'APP-2026-X9A7',
-        name: form.name.trim(),
-        email: form.email.trim(),
-        jobTitle: job.title,
-      });
-    }, 600);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 pb-28">
       <PortalHeader title={job.title} subtitle={`${job.department} · ${job.location}`} onBack={onBack} />
 
-      <main className="max-w-md w-full mx-auto px-4 py-5 space-y-4">
+      <main className="max-w-2xl w-full mx-auto px-5 py-6 space-y-4">
         <div className="flex flex-wrap gap-2">
           <StatusChip variant="neutral">{job.type}</StatusChip>
           <StatusChip variant="yellow">{job.quota} posisi</StatusChip>
@@ -129,7 +128,7 @@ export default function P2Apply({ job, onBack, onSubmitted, onGoTrack }) {
         <form id="apply-form" onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 p-4 space-y-4 shadow-sm">
           <div>
             <h3 className="font-display font-semibold text-lg text-[#172033]">Lengkapi data dirimu</h3>
-            <p className="text-xs text-slate-500">Tanda * wajib diisi. Gunakan email `duplikat@email.com` untuk simulasi deteksi ganda (BR-04).</p>
+            <p className="text-xs text-slate-500">Kolom bertanda * wajib diisi.</p>
           </div>
 
           {duplicateNotice && (
@@ -327,15 +326,15 @@ export default function P2Apply({ job, onBack, onSubmitted, onGoTrack }) {
 
       {/* Sticky Bottom CTA */}
       <div className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] z-30">
-        <div className="max-w-md mx-auto px-4 py-3">
-          <button
+        <div className="max-w-2xl mx-auto px-5 py-3">
+          <SakugaButton
             type="submit"
             form="apply-form"
             disabled={submitting}
             className="w-full h-12 rounded-xl bg-[#FFCC00] hover:bg-[#F2BE00] disabled:bg-slate-200 disabled:text-slate-500 text-[#172033] font-semibold text-sm transition"
           >
             {submitting ? 'Mengirim lamaran...' : 'Kirim lamaran sekarang'}
-          </button>
+          </SakugaButton>
         </div>
       </div>
     </div>

@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Briefcase, Calendar, Clock, MapPin, FileText, Phone, Check, AlertTriangle, RefreshCw } from 'lucide-react';
 import { PortalHeader, StatusChip, HairlineIllustration } from '../components/UI';
-import { INITIAL_SLOTS } from '../services/api';
+import {
+  INITIAL_SLOTS,
+  fetchAvailableSlots,
+  confirmInterviewApi,
+  declineInterviewApi,
+  rescheduleInterviewApi,
+} from '../services/api';
 
 function formatCountdown(secs) {
   const h = Math.floor(secs / 3600);
@@ -32,13 +38,34 @@ export default function P5Interview({ application, onBackToStatus, onBackHome })
     return () => clearInterval(t);
   }, [view, secondsLeft]);
 
-  const expired = secondsLeft <= 0;
+  useEffect(() => {
+    if (view !== 'reschedule') return;
+    fetchAvailableSlots().then((list) => {
+      setSlots(list);
+      const firstAvail = list.find((s) => s.available);
+      if (firstAvail) setSelectedSlotId(firstAvail.id);
+    });
+  }, [view]);
 
-  const handleConfirmReschedule = () => {
+  const expired = secondsLeft <= 0;
+  const interviewToken = application?.interview?.token || '';
+
+  const handleConfirmPresence = async () => {
+    await confirmInterviewApi(interviewToken);
+    setView('confirmed');
+  };
+
+  const handleConfirmDecline = async () => {
+    await declineInterviewApi(interviewToken, declineReason);
+    setShowDeclineModal(false);
+    setView('declined');
+  };
+
+  const handleConfirmReschedule = async () => {
     const slot = slots.find((s) => s.id === selectedSlotId);
     if (!slot) return;
-    // Simulasi edge case 409 Conflict jika memilih slot_2 (13.30 WIB)
-    if (slot.conflictSim) {
+    const res = await rescheduleInterviewApi(interviewToken, slot.id);
+    if (res.conflict || slot.conflictSim) {
       setConflict409(true);
       setSlots((prev) => prev.map((s) => (s.id === slot.id ? { ...s, available: false, conflictSim: false } : s)));
       const nextAvail = slots.find((s) => s.available && s.id !== slot.id);
@@ -132,7 +159,7 @@ export default function P5Interview({ application, onBackToStatus, onBackHome })
           <div>
             <h2 className="font-display text-lg font-bold text-[#172033]">Slot yang masih tersedia</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Setelah kamu mengonfirmasi slot baru, jadwal lamamu otomatis dilepas. Pilih slot Selasa 13.30 untuk simulasi 409 Conflict.
+              Setelah kamu mengonfirmasi slot baru, jadwal lamamu otomatis dilepas.
             </p>
           </div>
 
@@ -216,7 +243,7 @@ export default function P5Interview({ application, onBackToStatus, onBackHome })
           </p>
         </div>
 
-        {/* Countdown + Quick Expired Sim button */}
+        {/* Countdown */}
         <div
           className={`rounded-xl p-3.5 flex items-center gap-3 ${
             expired ? 'bg-[#FEE2E2] text-[#B91C1C]' : 'bg-[#FEF3C7] text-[#A16207]'
@@ -231,13 +258,6 @@ export default function P5Interview({ application, onBackToStatus, onBackHome })
               {expired ? '00:00 (Slot dilepas otomatis)' : formatCountdown(secondsLeft)}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setSecondsLeft(expired ? 76440 : 0)}
-            className="px-2 py-1 rounded bg-white/80 text-[11px] font-semibold text-[#172033]"
-          >
-            {expired ? 'Reset' : 'Sim. Habis'}
-          </button>
         </div>
 
         {/* Interview Details */}
@@ -266,7 +286,7 @@ export default function P5Interview({ application, onBackToStatus, onBackHome })
           <button
             type="button"
             disabled={expired}
-            onClick={() => setView('confirmed')}
+            onClick={handleConfirmPresence}
             className="w-full h-12 rounded-xl bg-[#FFCC00] hover:bg-[#F2BE00] disabled:bg-slate-200 disabled:text-slate-400 text-[#172033] font-semibold text-sm flex items-center justify-center gap-2 transition"
           >
             <Check className="w-4 h-4" strokeWidth={2} />
@@ -324,10 +344,7 @@ export default function P5Interview({ application, onBackToStatus, onBackHome })
             <div className="space-y-2">
               <button
                 type="button"
-                onClick={() => {
-                  setShowDeclineModal(false);
-                  setView('declined');
-                }}
+                onClick={handleConfirmDecline}
                 className="w-full h-11 rounded-xl bg-[#B91C1C] text-white text-sm font-semibold hover:bg-red-800"
               >
                 Ya, saya tidak bisa hadir

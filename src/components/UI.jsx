@@ -8,16 +8,30 @@ export function LogoMark({ size = 36 }) {
   return (
     <div
       style={{ width: size, height: size }}
-      className="rounded-xl bg-[#FFCC00] flex items-center justify-center shrink-0 shadow-sm"
+      className="rounded-xl bg-[#FFCC00] border border-amber-300/60 flex items-center justify-center shrink-0 shadow-sm"
     >
-      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none">
+      <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 64 64" fill="none" aria-hidden="true">
         <path
-          d="M7 18V6H13.5C15.7 6 17.5 7.6 17.5 9.8C17.5 12 15.7 13.5 13.5 13.5H7M12.5 13.5L17.5 18"
+          d="M17 47V17H32C37.5 17 41.5 20.6 41.5 25.8C41.5 31 37.5 34.4 32 34.4H23.5"
           stroke="#172033"
-          strokeWidth="2.2"
+          strokeWidth="5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+        <path
+          d="M30 34.4L47 47"
+          stroke="#172033"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M39 20L48 15L43 24"
+          stroke="#FFFFFF"
+          strokeWidth="4.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="48" cy="15" r="3" fill="#FFFFFF" />
       </svg>
     </div>
   );
@@ -110,7 +124,7 @@ export function SkeletonCard() {
 export function PortalHeader({ title = 'RecruitFlow Karir', subtitle, onBack, rightAction }) {
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
-      <div className="max-w-md mx-auto px-4 h-16 flex items-center gap-3">
+      <div className="max-w-5xl mx-auto px-5 h-16 flex items-center gap-3">
         {onBack ? (
           <button
             type="button"
@@ -142,7 +156,7 @@ export function BottomNav({ activePage, onNavigate }) {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.05)]">
-      <div className="max-w-md mx-auto px-2 h-16 grid grid-cols-3 items-center">
+      <div className="max-w-2xl mx-auto px-2 h-16 grid grid-cols-3 items-center">
         {items.map((item) => {
           const Icon = item.icon;
           const active = activePage === item.id || (item.id === 'p1' && activePage === 'p2');

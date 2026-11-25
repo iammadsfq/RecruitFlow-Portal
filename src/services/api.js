@@ -146,10 +146,10 @@ export const MOCK_APPLICATIONS = {
     job_title: 'Crew Operasional',
     location: 'Jakarta',
     applied_at: '12 Nov 2026, 09.14 WIB',
-    stage: 'INVITED', // RECEIVED | REVIEWING | INVITED | SCHEDULED | COMPLETED | REJECTED | EXPIRED
+    stage: 'INVITED',
     updated_at: '14 Nov 2026, 10.30 WIB',
     interview: {
-      status: 'PENDING', // PENDING | CONFIRMED | DECLINED | EXPIRED
+      status: 'PENDING',
       date: 'Senin, 24 Nov 2026',
       time: '10.00 WIB (30 menit)',
       location: 'Kantor Pusat, Jl. Merdeka No. 12, Jakarta Pusat',
@@ -157,37 +157,6 @@ export const MOCK_APPLICATIONS = {
       contact: 'Rina (HR) · 0812-0000-0000',
       remaining_seconds: 21 * 3600 + 14 * 60,
     },
-  },
-  'APP-2026-R4T9': {
-    code: 'APP-2026-R4T9',
-    token: 'tok_r4t9',
-    applicant_name: 'Dimas Pratama',
-    job_title: 'Crew Operasional',
-    location: 'Bekasi',
-    applied_at: '13 Nov 2026, 11.20 WIB',
-    // PERLU_DITINJAU ditampilkan netral sebagai "Sedang ditinjau" kepada kandidat
-    stage: 'REVIEWING',
-    updated_at: '14 Nov 2026, 08.15 WIB',
-  },
-  'APP-2026-Q5Z1': {
-    code: 'APP-2026-Q5Z1',
-    token: 'tok_q5z1',
-    applicant_name: 'Dewi Lestari',
-    job_title: 'Crew Operasional',
-    location: 'Surabaya',
-    applied_at: '10 Nov 2026, 16.05 WIB',
-    stage: 'REJECTED',
-    updated_at: '13 Nov 2026, 15.00 WIB',
-  },
-  'APP-2026-EXP0': {
-    code: 'APP-2026-EXP0',
-    token: 'tok_exp0',
-    applicant_name: 'Rendra Putra',
-    job_title: 'Warehouse Staff',
-    location: 'Surabaya',
-    applied_at: '01 Sep 2026, 10.00 WIB',
-    stage: 'EXPIRED',
-    updated_at: '01 Nov 2026, 00.00 WIB',
   },
 };
 
@@ -224,41 +193,18 @@ export const MOCK_INVITATIONS = [
       remaining_seconds: 0,
     },
   },
-  {
-    id: 'inv_3',
-    code: 'APP-2026-EXP0',
-    applicant_name: 'Budi Santoso',
-    job_title: 'Warehouse Staff',
-    department: 'Logistik & Gudang',
-    interview: {
-      status: 'EXPIRED',
-      date: 'Senin, 10 Nov 2026',
-      time: '09.00 WIB (30 menit)',
-      location: 'Gudang Distribusi Rungkut, Surabaya',
-      documents: 'KTP asli dan salinan CV',
-      contact: 'Agus (HR) · 0813-3333-4444',
-      remaining_seconds: 0,
-    },
-  },
 ];
 
 export const INITIAL_SLOTS = [
-  { id: 'slot_1', date: 'Selasa, 25 Nov 2026', time: '09.00 WIB', available: true, conflictSim: false },
-  { id: 'slot_2', date: 'Selasa, 25 Nov 2026', time: '13.30 WIB', available: true, conflictSim: true },
-  { id: 'slot_3', date: 'Rabu, 26 Nov 2026', time: '10.00 WIB', available: true, conflictSim: false },
-  { id: 'slot_4', date: 'Rabu, 26 Nov 2026', time: '15.00 WIB', available: false, conflictSim: false },
-  { id: 'slot_5', date: 'Kamis, 27 Nov 2026', time: '09.30 WIB', available: true, conflictSim: false },
+  { id: 'slot_1', date: 'Selasa, 25 Nov 2026', time: '09.00 WIB', available: true },
+  { id: 'slot_2', date: 'Selasa, 25 Nov 2026', time: '13.30 WIB', available: true },
+  { id: 'slot_3', date: 'Rabu, 26 Nov 2026', time: '10.00 WIB', available: true },
+  { id: 'slot_4', date: 'Kamis, 27 Nov 2026', time: '09.30 WIB', available: true },
 ];
 
-export async function fetchJobs(simulateMode = 'normal') {
-  if (simulateMode === 'error') {
-    throw new Error('Koneksi ke server terputus (503). Silakan coba beberapa saat lagi.');
-  }
-  if (simulateMode === 'empty') {
-    return { jobs: [], isDemo: true };
-  }
+export async function fetchJobs() {
   try {
-    const res = await fetch(`${API_BASE}/public/jobs`, { signal: AbortSignal.timeout(1800) });
+    const res = await fetch(`${API_BASE}/public/jobs`, { signal: AbortSignal.timeout(2000) });
     if (!res.ok) throw new Error('Server error');
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
@@ -267,13 +213,195 @@ export async function fetchJobs(simulateMode = 'normal') {
           ...MOCK_JOBS[0],
           ...j,
           type: j.type || 'Full-time',
-          close_date: j.close_date || '30 Nov 2026',
+          close_date: j.close_date || '30 Des 2026',
         })),
-        isDemo: false,
+        isLive: true,
       };
     }
   } catch {
-    // Fallback graceful ke data simulasi lokal bila backend belum dinyalakan
+    // Graceful fallback to local data when backend is offline
   }
-  return { jobs: MOCK_JOBS, isDemo: true };
+  return { jobs: MOCK_JOBS, isLive: false };
+}
+
+export async function submitApplication(form, cvFile, job) {
+  const fd = new FormData();
+  fd.append('job_id', job.id);
+  fd.append('name', form.name.trim());
+  fd.append('email', form.email.trim());
+  fd.append('phone', form.phone.trim());
+  fd.append('city', form.city.trim());
+  fd.append('education', form.education);
+  fd.append('experience_years', form.experience.replace(',', '.'));
+  fd.append('screening_answers', JSON.stringify(form.answers || {}));
+  fd.append('cv_file', cvFile);
+
+  try {
+    const res = await fetch(`${API_BASE}/public/applications`, {
+      method: 'POST',
+      body: fd,
+      signal: AbortSignal.timeout(5000),
+    });
+    const data = await res.json();
+    if (res.status === 409) {
+      return { duplicate: true, message: data.message };
+    }
+    if (!res.ok) {
+      throw new Error(data.message || 'Gagal mengirim lamaran');
+    }
+    return {
+      duplicate: false,
+      code: data.application_id,
+      token: data.token_status,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      jobTitle: job.title,
+      isLive: true,
+    };
+  } catch (err) {
+    if (err?.name === 'TypeError' || err?.name === 'TimeoutError') {
+      return {
+        duplicate: false,
+        code: `APP-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        jobTitle: job.title,
+        isLive: false,
+      };
+    }
+    throw err;
+  }
+}
+
+export async function trackApplication(codeOrToken) {
+  const trimmed = (codeOrToken || '').trim();
+  if (!trimmed) return null;
+  try {
+    const res = await fetch(`${API_BASE}/public/applications/${encodeURIComponent(trimmed)}`, {
+      signal: AbortSignal.timeout(2000),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const stepToStage = { 1: 'RECEIVED', 2: 'REVIEWING', 3: 'INVITED', 4: 'SCHEDULED', 5: 'COMPLETED' };
+      const stage =
+        data.stage === 'DITOLAK_TERKIRIM' || data.stage === 'DISETUJUI_TOLAK'
+          ? 'REJECTED'
+          : stepToStage[data.status_info?.step] || 'REVIEWING';
+      return {
+        code: data.id || trimmed,
+        applicant_name: data.candidate_name,
+        job_title: data.job_title,
+        location: data.location || data.department,
+        applied_at: data.applied_at,
+        stage,
+        status_label: data.status_info?.label,
+        status_desc: data.status_info?.desc,
+        interview: data.interview
+          ? {
+              ...data.interview,
+              date: data.interview.start_time ? new Date(data.interview.start_time).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : 'Jadwal Terlampir',
+              time: data.interview.start_time ? `${new Date(data.interview.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB` : '-',
+            }
+          : null,
+        isLive: true,
+      };
+    }
+  } catch {
+    // Fallback to mock lookup
+  }
+  return MOCK_APPLICATIONS[trimmed.toUpperCase()] || null;
+}
+
+export async function fetchInterviewOffer(token) {
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API_BASE}/public/interviews/${encodeURIComponent(token)}`, {
+      signal: AbortSignal.timeout(2500),
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    const holdMs = new Date(d.hold_until).getTime();
+    return {
+      code: d.id,
+      applicant_name: d.candidate_name,
+      job_title: d.job_title,
+      interview: {
+        token,
+        status: d.status === 'TERKONFIRMASI' ? 'CONFIRMED' : d.status === 'TIDAK_MERESPONS' ? 'EXPIRED' : 'PENDING',
+        date: d.start_time ? new Date(d.start_time).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        time: d.start_time ? `${new Date(d.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB` : '-',
+        location: d.interview_location,
+        documents: d.documents_required,
+        contact: d.contact_person,
+        remaining_seconds: Number.isFinite(holdMs) ? Math.max(0, Math.floor((holdMs - Date.now()) / 1000)) : 72000,
+      },
+      isLive: true,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchAvailableSlots() {
+  try {
+    const res = await fetch(`${API_BASE}/public/slots`, { signal: AbortSignal.timeout(2000) });
+    if (!res.ok) throw new Error('Failed');
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      return rows.map((s) => ({
+        id: s.id,
+        date: new Date(s.start_time).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }),
+        time: `${new Date(s.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`,
+        interviewer: s.interviewer_name,
+        available: true,
+      }));
+    }
+  } catch {
+    // Fallback
+  }
+  return INITIAL_SLOTS;
+}
+
+export async function confirmInterviewApi(token) {
+  if (!token) return { ok: true, isLive: false };
+  try {
+    const res = await fetch(`${API_BASE}/public/interviews/${encodeURIComponent(token)}/confirm`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(3000),
+    });
+    return { ok: res.ok, isLive: true };
+  } catch {
+    return { ok: true, isLive: false };
+  }
+}
+
+export async function declineInterviewApi(token, reason = '') {
+  if (!token) return { ok: true, isLive: false };
+  try {
+    const res = await fetch(`${API_BASE}/public/interviews/${encodeURIComponent(token)}/decline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+      signal: AbortSignal.timeout(3000),
+    });
+    return { ok: res.ok, isLive: true };
+  } catch {
+    return { ok: true, isLive: false };
+  }
+}
+
+export async function rescheduleInterviewApi(token, slotId) {
+  if (!token) return { ok: true, conflict: false, isLive: false };
+  try {
+    const res = await fetch(`${API_BASE}/public/interviews/${encodeURIComponent(token)}/reschedule`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slot_id: slotId }),
+      signal: AbortSignal.timeout(3000),
+    });
+    if (res.status === 409) return { ok: false, conflict: true, isLive: true };
+    return { ok: res.ok, conflict: false, isLive: true };
+  } catch {
+    return { ok: true, conflict: false, isLive: false };
+  }
 }
